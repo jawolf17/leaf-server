@@ -19,8 +19,11 @@ def create_user():
     #connect to db
     connection = sqlite3.connect('db/accounts.db')
 
+    #generate unique id
+    u_id = str(uuid.uuid4())
+
     #format data for insertions
-    user = ((data["username"],data["password"],"","","","","","","",""))
+    user = ((data["username"],data["password"],"","","","","","","","",u_id)
 
     with connection:
         cur = connection.cursor()
