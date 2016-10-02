@@ -29,9 +29,9 @@ def login():
             retMessage = {"message" : "You have logged in","code":200}
 
         else:
-            retMessage = {"message":"Invalid Log in","code":200}
+            retMessage = {"message":"Invalid Log in","code":403}
     else:
-        retMessage = {"message":"Invalid Log in","code":200}
+        retMessage = {"message":"Invalid Log in","code":403}
 
     conn.close()
     return jsonify(retMessage)
