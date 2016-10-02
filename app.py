@@ -1,18 +1,17 @@
 
-from flask import Flask, request
+from flask import Flask, jsonify,request
 import json, sqlite3, uuid
 
 app=Flask(__name__)
 
-@app.route('/')
+@app.route('/',methods=["GET","POST"])
 def main():
     return "It's a server!"
 
 
 @app.route('/login', methods=["GET","POST"])
 def login():
-    info = request.get_json(force = True)
-    userInfo = json.loads(request.get_json(force = True))
+    userInfo = request.get_json(force = True)
 
     sqlite_file = "db/accounts.db"
     table_name = "namePass"
@@ -35,12 +34,13 @@ def login():
         retMessage = {"message":"Invalid Log in","code":200}
 
     conn.close()
-    return json.jsonify(retMessage)
+    return jsonify(retMessage)
 
 @app.route('/create-user',methods=["POST"])
 def create_user():
     #Get Request
-    data = json.loads(request.get_json(force = True))
+    data = request.get_json(force = True)
+    print data["username"]
     #connect to db
     connection = sqlite3.connect('db/accounts.db')
 
@@ -52,7 +52,7 @@ def create_user():
 
     with connection:
         cur = connection.cursor()
-        cur.executeMany("INSERT INTO namePass VALUES (?,?,?,?,?,?,?,?,?,?)", user)
+        cur.executemany("INSERT INTO namePass VALUES (?,?,?,?,?,?,?,?,?,?,?)", user)
         connection.commit()
 
     #Create Response
@@ -60,4 +60,4 @@ def create_user():
                 "code": 200}
 
     print "[POST] NEW USER CREATION: New user has been added to the database"
-    return json.jsonify(response)
+    return jsonify(response)
