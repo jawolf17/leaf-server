@@ -1,6 +1,6 @@
 
-from flask import Flask, jsonify,request
-import json, sqlite3, uuid
+from flask import Flask,jsonify,request
+import hashlib,json, sqlite3, uuid
 
 app=Flask(__name__)
 
@@ -47,6 +47,11 @@ def create_user():
     #generate unique id
     u_id = str(uuid.uuid4())
 
+    #Create Hash Object
+    hasher = hashlib.sha256()
+    #Hash the password
+    hasher.update(data["password"])
+    data["password"] = hasher.hexdigest()
     #format data for insertions
     user = ((data["username"],data["password"],"","","","","","","","",u_id),)
 
