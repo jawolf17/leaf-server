@@ -64,6 +64,11 @@ def create_user():
 
     with connection:
         cur = connection.cursor()
+        search = cur.execute("SELECT * FROM namePass WHERE %s=?" % "username",(data["username"],))
+        if search:
+            response = {"code": 403, "message": "This Username already exists in the database."}
+            return jsonify(response)
+
         cur.executemany("INSERT INTO namePass VALUES (?,?,?,?,?,?,?,?,?,?,?)", user)
         connection.commit()
 
