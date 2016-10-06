@@ -12,6 +12,8 @@ def main():
 @app.route('/login', methods=["GET","POST"])
 def login():
     userInfo = request.get_json(force = True)
+    #Create HashLib Obj
+    hasher = hashlib.sha256()
 
     sqlite_file = "db/accounts.db"
     table_name = "namePass"
@@ -21,13 +23,18 @@ def login():
     passwordIn = userInfo['password']
     conn = sqlite3.connect(sqlite_file)
     c = conn.cursor()
-    c.execute("SELECT * FROM namePass WHERE %s=?" % pass_col,(passwordIn,))
+    c.execute("SELECT * FROM namePass WHERE %s=?" % username_column,(usernameIn,))
     id_exists = c.fetchone()
     if id_exists:
         print(id_exists[0])
-        if id_exists[0] == usernameIn:
-            retMessage = {"message" : "You have logged in","code":200}
+        #Encode the passowed the user entered
+        hasher.update(passwordIn)
+        entered = hasher.hexdigest()
+        #Get Expected Password
+        expected = id_exists[1]
 
+        if entered == expected:
+            retMessage = {"message" : "You have logged in","code":200}
         else:
             retMessage = {"message":"Invalid Log in","code":403}
     else:
