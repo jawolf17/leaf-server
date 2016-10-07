@@ -15,7 +15,7 @@ NOTE: These instructions were written Linux.
  
 I) First Time Set-Up:
      1) Ensure you have dependencies installed
-	a) sudo apt-get install pip
+	a)sudo apt-get install pip
         b) sudo apt-get install virtualenv
         c) sudo apt-get install git
  
