@@ -79,3 +79,7 @@ def create_user():
 
     print "[POST] NEW USER CREATION: New user has been added to the database"
     return jsonify(response)
+
+    @app.route('/get-event/<id>')
+    def get_event(id):
+        return jsonify({"code: 200","message": "Hey you got it, look at that"})
