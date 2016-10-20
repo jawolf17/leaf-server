@@ -15,7 +15,7 @@ def login():
     #Create HashLib Obj
     hasher = hashlib.sha256()
 
-    sqlite_file = "db/accounts.db"
+    sqlite_file = "db/server.db"
     table_name = "namePass"
     username_column = "username"
     pass_col = "password"
@@ -49,7 +49,7 @@ def create_user():
     data = request.get_json(force = True)
     print data["username"]
     #connect to db
-    connection = sqlite3.connect('db/accounts.db')
+    connection = sqlite3.connect('db/server.db')
 
     #generate unique id
     u_id = str(uuid.uuid4())
@@ -90,7 +90,7 @@ def create_user():
     @app.route('/get-event/<id>')
     def get_event(id):
         #Connect to DB
-        connection = sqlite('db/accounts.db')
+        connection = sqlite('db/server.db')
         #Initialize Response
         response = {"code": 400, "message": "Could not retreive event."}
 
