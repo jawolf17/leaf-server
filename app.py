@@ -80,6 +80,34 @@ def create_user():
     print "[POST] NEW USER CREATION: New user has been added to the database"
     return jsonify(response)
 
+
+
+    """
+        @Desc: Handles Requests for events
+        @Param: id: str- id of event to retrieve
+        @Returns: JSON Object containing data and server response codes
+    """
     @app.route('/get-event/<id>')
     def get_event(id):
-        return jsonify({"code: 200","message": "Hey you got it, look at that"})
+        #Connect to DB
+        connection = sqlite('db/accounts.db')
+        #Initialize Response
+        response = {"code": 400, "message": "Could not retreive event."}
+
+        with connection:
+            #Query DB for Event
+            cur = connection.cursor()
+            search = cur.execute("SELECT * FROM events WHERE %s=?" % "id", (id,))
+            exists = search.fetchone()
+            #If event is found
+            if exists:
+                #Format Event
+                cols = [description[0] for description in cursor.description]
+                event = {key: value for (key,value) in cols}
+
+                #Generate Response
+                response["code"] = 200
+                response["message"] = "Event Retrieved"
+                response["event"] = event
+
+        return jsonify(response)
