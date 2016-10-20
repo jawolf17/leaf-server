@@ -85,7 +85,7 @@ def create_event():
     #Get Request
     data = request.get_json(force = True)
     #connect to db
-    connection = sqlite3.connect('db/accounts.db')
+    connection = sqlite3.connect('db/server.db')
 
     #generate unique id
     u_id = str(uuid.uuid4())
