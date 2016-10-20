@@ -79,3 +79,30 @@ def create_user():
 
     print "[POST] NEW USER CREATION: New user has been added to the database"
     return jsonify(response)
+
+@app.route('/create-event',methods=["POST"])
+def create_event():
+    #Get Request
+    data = request.get_json(force = True)
+    #connect to db
+    connection = sqlite3.connect('db/accounts.db')
+
+    #generate unique id
+    u_id = str(uuid.uuid4())
+
+    
+    
+    #format data for insertions
+    user = ((data["date"],data["time"],data["location"],data["name"],data["description"],data["listofPart"],data["image"],data["owner"],data["arrivalNot"],u_id),)
+
+    with connection:
+        cur = connection.cursor()
+        cur.executemany("INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?)", user)
+        connection.commit()
+
+    #Create Response
+    response = {"message": "A new event has successfully been added to the database. ",
+                "code": 200}
+
+    print "[POST] NEW EVENT CREATION: New event has been added to the database"
+    return jsonify(response)
