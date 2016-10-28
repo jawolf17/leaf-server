@@ -87,10 +87,10 @@ def create_user():
         @Param: id: str- id of event to retrieve
         @Returns: JSON Object containing data and server response codes
     """
-    @app.route('/get-event/<id>')
-    def get_event(id):
+@app.route('/get-event/<id>',methods=["GET","POST"])
+def get_event(id):
         #Connect to DB
-        connection = sqlite('db/server.db')
+        connection = sqlite3.connect('db/server.db')
         #Initialize Response
         response = {"code": 400, "message": "Could not retreive event."}
 
@@ -102,9 +102,9 @@ def create_user():
             #If event is found
             if exists:
                 #Format Event
-                cols = [description[0] for description in cursor.description]
-                event = {key: value for (key,value) in cols}
-
+                #cols = [description[0] for description in cur.description]
+                #event = {key: value for (key,value) in cols}
+		event = {'date':exists[0],'time':exists[1],'location':exists[2],'name':exists[3],'description':exists[4],'listofPart':exists[5],'image':exists[6],'owner':exists[7],'arrivalNot':exists[8],'id':exists[9]}
                 #Generate Response
                 response["code"] = 200
                 response["message"] = "Event Retrieved"
