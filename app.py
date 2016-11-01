@@ -34,7 +34,7 @@ def login():
         expected = id_exists[1]
 
         if entered == expected:
-            retMessage = {"message" : "You have logged in","code":200}
+            retMessage = {"message" : "You have logged in","code":200,"username":id_exists[0],"dob":id_exists[2],"phone":id_exists[3],"fName":id_exists[4],"lName":id_exists[5],"currentEvent":id_exists[6],"friendsList":id_exists[7],"bio":id_exists[9],"id":id_exists[10]}
         else:
             retMessage = {"message":"Invalid Log in","code":403}
     else:
