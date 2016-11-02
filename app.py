@@ -8,6 +8,26 @@ app=Flask(__name__)
 def main():
     return "It's a server!"
 
+@app.route('/add-friend/<uid>',methods=["GET","POST"])
+def add_freind(uid):
+    #Get request data
+    data = request.get_json(force=True)
+    #Path to file
+    db_file = "db/server.db"
+    con = sqlite3.connect(db_file)
+    with con:
+        cur = con.cursor()
+        #Find User in DB
+        cur.execute("SELECT * FROM namePass WHERE %s=?"%"id",(uid,))
+        id_exists = cur.fetchone()
+        #Check existance
+        if id_exists:
+            cur = con.cursor()
+            cur.execute("UPDATE namePass SET friendsList=? WHERE id=?",(data["friendsList"],uid,))
+            con.commit()
+            return jsonify({"code": 200, "message": "Friends List Updated"})
+        else:
+            return jsonify({"code": 403, "message": "User does not exists"})
 
 @app.route('/login', methods=["GET","POST"])
 def login():
