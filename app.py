@@ -22,8 +22,9 @@ def add_freind(uid):
         id_exists = cur.fetchone()
         #Check existance
         if id_exists:
-            #cur.execute("UPDATE namePass SET friendsList = %s WHERE id=?"%data["friendsList"],(uid,))
-            id_exists[7] = data["friendsList"]
+            cur = con.cursor()
+            cur.execute("UPDATE namePass SET friendsList = %s WHERE id=?"%data["friendsList"],(uid,))
+            #id_exists[7] = data["friendsList"]
             con.commit()
             return jsonify({"code": 200, "message": "Friends List Updated"})
         else:
