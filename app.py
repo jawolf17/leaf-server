@@ -27,9 +27,9 @@ def account_update(uid):
         if exists:
             #Check for password match
             hasher.update(data["pass"])
-            if hasher.hexdigest() == exists[1]:
+            if hasher.hexdigest() == exists[0]:
                cur.execute("UPDATE namePass SET username=?, password=?, dob=?,phone=?,fName=?, lName=?, bio=? WHERE id=?",
-                            (data["username"],data["password"],data["dob"],data["phone"],data["fName"],data["lName"],data["bio"],))
+                            (data["username"],data["password"],data["dob"],data["phone"],data["fName"],data["lName"],data["bio"],uid,))
                return jsonify({"code": 200, "message": "You info has been updated"})
             else:
                 return jsonify({"code": 401, "message": "Your password is incorrect"})
