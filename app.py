@@ -30,7 +30,7 @@ def account_update(uid):
             passw = hasher.hexdigest()
             if  passw == exists[0]:
                #Hash new password if update requested
-               if data["password"] == None:
+               if data["password"] != None:
                     hasher2 = hashlib.sha256()
                     hasher2.update(data["password"])
                     passw = hasher2.hexdigest()
