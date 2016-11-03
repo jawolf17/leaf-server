@@ -8,6 +8,34 @@ app=Flask(__name__)
 def main():
     return "It's a server!"
 
+@app.route('/account-update/<uid>',methods=["POST"])
+def account_update(uid):
+    #Get request data
+    data = request.get_json(force=True)
+    #Path to db file
+    db_file = "db/server.db"
+    #Create Hash Obj
+    hasher = hashlib.sha256()
+    #connect to db
+    con = sqlite3.connect(db_file)
+    with con:
+        cur = con.cursor()
+        #Find User ID
+        cur.execute("SELECT password FROM namePass  WHERE id=?",(uid,))
+        exists = cur.fetchone()
+        #Checks for user existance
+        if exists:
+            #Check for password match
+            hash_pass = hasher.update(data["pass"])
+            if hash_pass.hexdigest() == exists[1]:
+               cur.execute("UPDATE namePass SET username=?, password=?, dob=?,phone=?,fName=?, lName=?, bio=? WHERE id=?",
+                            (data["username"],data["password"],data["dob"],data["phone"],data["fName"],data["lName"],data["bio"],))
+               return jsonify({"code": 200, "message": "You info has been updated"})
+            else:
+                return jsonify({"code": 401, "message": "Your password is incorrect"})
+        else:
+            return jsonify({"code": 403, "message": "User does not exists."})
+        #Check for user existance
 @app.route('/add-friend/<uid>',methods=["GET","POST"])
 def add_freind(uid):
     #Get request data
