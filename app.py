@@ -167,6 +167,21 @@ def get_event(id):
 
         return jsonify(response)
 
+@app.route('/search', methods=['GET'])
+def search():
+    """
+        Expected JSON format
+        {
+          "dist": <double>  search radius
+          "time-to": <string> date-time signifiying start of event*
+          "time-from": <string> date-time signfying end of event*
+          "public": - boolean (True for public)
+        }
+
+        *Date String formatted as mm/dd/yyyy
+    """
+
+    return jsonify({"code": 200, "message": "Database query success"})
 @app.route('/create-event',methods=["POST"])
 def create_event():
     #Get Request
