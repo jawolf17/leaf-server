@@ -167,6 +167,24 @@ def get_event(id):
 
         return jsonify(response)
 
+@app.route('/get-user/<username>',methods=["GET","POST"])
+def get_user(username):
+	connection = sqlite3.connect('db/server.db')
+	response = {"code":400,"message":"Could not Retreive user."}
+
+	with connection:
+		cur = connection.cursor()
+		search = cur.execute("SELECT * FROM namePass WHERE %s=?" % "username",(username,))
+		exists = search.fetchone()
+		
+		if exists:
+			user = {'username':exists[0],'dob':exists[2],'phone':exists[3],'fName':exists[4],'lName':exists[5],'friendsList':exists[7],'userPic':exists[8],'bio':exists[9]}
+			response['code'] = 200
+			response['message'] = "User Retrieved"
+			response['user'] = user
+	return jsonify(response) 
+
+
 @app.route('/create-event',methods=["POST"])
 def create_event():
     #Get Request
