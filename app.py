@@ -150,18 +150,22 @@ def get_event(id):
         response = {"code": 400, "message": "Could not retreive event."}
 
         with connection:
-            if id == 0
+            #print type(id)  
+            if id == "0":
+                 
                 cur = connection.cursor()
-                search = cur.execute("SELECT * FROM events)
+                search = cur.execute("SELECT * FROM events")
                 response["code"] = 200
                 response["message"] = "Event Retrieved"
                 num = 0
-                while search is not None:
-                    exists = search.fetchone()
+                #print "FMT"
+                for exists in search:
+                    #exists = search.fetchone()
                     event = {'date':exists[0],'time':exists[1],'location':exists[2],'name':exists[3],'description':exists[4],'listofPart':exists[5],'image':exists[6],'owner':exists[7],'arrivalNot':exists[8],'id':exists[9]}
                     #Generate Response
                     response["event"+str(num)] = event
                     num+=1
+                #print "FOR"
                 return jsonify(response)
             else:
                 #Query DB for Event
@@ -173,7 +177,7 @@ def get_event(id):
                 #Format Event
                 #cols = [description[0] for description in cur.description]
                 #event = {key: value for (key,value) in cols}
-		        event = {'date':exists[0],'time':exists[1],'location':exists[2],'name':exists[3],'description':exists[4],'listofPart':exists[5],'image':exists[6],'owner':exists[7],'arrivalNot':exists[8],'id':exists[9]}
+		event = {'date':exists[0],'time':exists[1],'location':exists[2],'name':exists[3],'description':exists[4],'listofPart':exists[5],'image':exists[6],'owner':exists[7],'arrivalNot':exists[8],'id':exists[9]}
                 #Generate Response
                 response["code"] = 200
                 response["message"] = "Event Retrieved"
