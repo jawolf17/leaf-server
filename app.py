@@ -1,6 +1,7 @@
 
 from flask import Flask,jsonify,request
-import hashlib,json, sqlite3, uuid
+from datetime import datetime
+import hashlib,json, math,sqlite3, time, uuid
 
 app=Flask(__name__)
 
@@ -173,15 +174,95 @@ def search():
         Expected JSON format
         {
           "dist": <double>  search radius
+          "current" <2tuple> (lat,long) user's currnt position
           "time-to": <string> date-time signifiying start of event*
-          "time-from": <string> date-time signfying end of event*
-          "public": - boolean (True for public)
+          "time-frm: <string> date-time signfying end of event*
+          "public": - integer (1 for public)
+          "title": - string
         }
-
-        *Date String formatted as mm/dd/yyyy
+        NOTE: Any field can be left as "" (except public/private) to avoid searching by that parameter. Dist can be -1
+        *Date String formatted as mm-dd-yyyy
     """
 
-    return jsonify({"code": 200, "message": "Database query success"})
+    data = response.get_json(force=True)
+    try:
+        #Connect to DB
+        connection = sqlite3("db/server.db")
+
+
+
+        with connection:
+            cur = connection.cursor()
+            query = "SELECT * FROM events WHERE "
+            query_vals = ()
+            #Build search query
+            #Calculate Distance from radius
+            if data["dist"] > -1:
+                #Get north & south most lat
+                n_lat = data["current"][0] - (data["dist"]/67)
+                s_lat = data["current"][0] + (data["dist"]/67)
+                #Get east and west most lng
+                e_lng = data["current"][1] + (data["dist"]/69)
+                w_lng = data["current"][1] - (data["dist"]/69)
+                #Build Query
+                query+="LAT>=? AND LAT<=? "
+                query_vals+= (s_lat,n_lat,)
+                query+="LONG>=? AND LONG<=?"
+                query_vals+=(e_lng,w_lng,)
+            if title != "":
+                query+="name=?"
+                query_vals+=(data["title"],)
+            query+="public=?"
+            query_vals+=(data["public"],)
+
+            print query
+            print query_vals
+            cur.execute(query,query_vals)
+            query_res = cur.fetchall()
+
+        #Parse query results
+        results = []
+        time_to = datetime.strptime(data["to_time"],"%d-%m-%Y")
+        time_frm = datetime.strptime(data["time_frm"],"%d-%m-%Y")
+        print query_res
+        for item in query_res:
+            #Track additional search conditions
+            time_range_to = data["time_to"] != ""
+            time_range_from = data["time_from"] != ""
+            location = data["dist"] != -1
+            #Get event time
+            event_time = datetime.strptime(item[0],"%d-%m-%Y")
+            #Check if time to is valid
+            if time_range_to and event_time > time_to:
+                   time_range_to = False
+            #CHeck if time from is valid
+            if time_range_from and event_time < time_frm:
+                   time_range_from = False
+            #Remove "corner cases "
+            if location:
+                event_distance = math.sqrt(item[10]**2 * item[11]**2)
+                if event_distance > data["dist"]:
+                    location = False
+
+            if time_range_from and time_range_to and location:
+                results.append(item)
+        print results
+        #Build list of json objects for return
+        cur.execute("PRAGMA table_info(events)")
+        names = cur.fetchall()
+        for res in range(0,len(results)-1):
+            obj = {}
+            for n in range(0,len(names)-1):
+                obj[names[n]] = results[n]
+            results[n] = obj
+        print results
+        return jsonify({"code": 200, "message": "Database query success","data": results})
+
+    except Exception as e:
+           print e
+
+    return jsonify({"code": 400, "message": "Could not search database"})
+
 @app.route('/create-event',methods=["POST"])
 def create_event():
     #Get Request
@@ -195,11 +276,11 @@ def create_event():
 
 
     #format data for insertions
-    user = ((data["date"],data["time"],data["location"],data["name"],data["description"],data["listofPart"],data["image"],data["owner"],data["arrivalNot"],u_id),)
+    user = ((data["date"],data["time"],data["location"],data["name"],data["description"],data["listofPart"],data["image"],data["owner"],data["arrivalNot"],u_id,data["lat"],data["long"],),)
 
     with connection:
         cur = connection.cursor()
-        cur.executemany("INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?)", user)
+        cur.executemany("INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?)", user)
         connection.commit()
 
     #Create Response
