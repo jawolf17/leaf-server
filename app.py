@@ -168,15 +168,15 @@ def get_event(id):
 
         return jsonify(response)
 
-@app.route('/search', methods=['GET'])
+@app.route('/search', methods=['GET','POST'])
 def search():
     """
         Expected JSON format
         {
           "dist": <double>  search radius
           "current" <2tuple> (lat,long) user's currnt position
-          "time-to": <string> date-time signifiying start of event*
-          "time-frm: <string> date-time signfying end of event*
+          "time_to": <string> date-time signifiying start of event*
+          "time_frm: <string> date-time signfying end of event*
           "public": - integer (1 for public)
           "title": - string
         }
@@ -184,19 +184,23 @@ def search():
         *Date String formatted as mm-dd-yyyy
     """
 
-    data = response.get_json(force=True)
+    data = request.get_json(force=True)
     try:
         #Connect to DB
-        connection = sqlite3("db/server.db")
+        connection = sqlite3.connect("db/server.db")
 
 
-
+        print data
+        #yes = (data["public"],)
+        #print  yes
         with connection:
             cur = connection.cursor()
             query = "SELECT * FROM events WHERE "
             query_vals = ()
+            print "Q"
             #Build search query
             #Calculate Distance from radius
+            print type(data["dist"])
             if data["dist"] > -1:
                 #Get north & south most lat
                 n_lat = data["current"][0] - (data["dist"]/67)
@@ -207,11 +211,12 @@ def search():
                 #Build Query
                 query+="LAT>=? AND LAT<=? "
                 query_vals+= (s_lat,n_lat,)
-                query+="LONG>=? AND LONG<=?"
+                query+="LONG>=? AND LONG<=?AND"
                 query_vals+=(e_lng,w_lng,)
-            if title != "":
-                query+="name=?"
-                query_vals+=(data["title"],)
+            if data["title"] != "":                
+                query+="name=? AND "
+                query_vals+=(str(data["title"]),)
+                print query_vals
             query+="public=?"
             query_vals+=(data["public"],)
 
@@ -222,27 +227,34 @@ def search():
 
         #Parse query results
         results = []
-        time_to = datetime.strptime(data["to_time"],"%d-%m-%Y")
-        time_frm = datetime.strptime(data["time_frm"],"%d-%m-%Y")
+        time_to = datetime.strptime(data["time_to"],"%d/%m/%Y")
+        time_frm = datetime.strptime(data["time_frm"],"%d/%m/%Y")
         print query_res
         for item in query_res:
             #Track additional search conditions
             time_range_to = data["time_to"] != ""
-            time_range_from = data["time_from"] != ""
+            time_range_from = data["time_frm"] != ""
             location = data["dist"] != -1
             #Get event time
-            event_time = datetime.strptime(item[0],"%d-%m-%Y")
+            event_time = datetime.strptime(item[0],"%d/%m/%Y")
             #Check if time to is valid
             if time_range_to and event_time > time_to:
                    time_range_to = False
+            elif not time_range_to:
+               time_range_to=True
             #CHeck if time from is valid
+             
             if time_range_from and event_time < time_frm:
                    time_range_from = False
+            elif not time_range_from:
+               time_range_from=True
             #Remove "corner cases "
             if location:
                 event_distance = math.sqrt(item[10]**2 * item[11]**2)
                 if event_distance > data["dist"]:
                     location = False
+            elif not location:
+               location = True
 
             if time_range_from and time_range_to and location:
                 results.append(item)
@@ -250,11 +262,12 @@ def search():
         #Build list of json objects for return
         cur.execute("PRAGMA table_info(events)")
         names = cur.fetchall()
-        for res in range(0,len(results)-1):
+        for res in range(0,len(results)):
             obj = {}
-            for n in range(0,len(names)-1):
-                obj[names[n]] = results[n]
-            results[n] = obj
+            for n in range(0,len(names)):
+                print "NAMES"+str(names[n][1]) 
+                obj[names[n][1]] = results[res][n]
+            results[res] = obj
         print results
         return jsonify({"code": 200, "message": "Database query success","data": results})
 
