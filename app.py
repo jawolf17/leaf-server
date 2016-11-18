@@ -151,10 +151,28 @@ def get_event(id):
         response = {"code": 400, "message": "Could not retreive event."}
 
         with connection:
-            #Query DB for Event
-            cur = connection.cursor()
-            search = cur.execute("SELECT * FROM events WHERE %s=?" % "id", (id,))
-            exists = search.fetchone()
+            #print type(id)
+            if id == "0":
+
+                cur = connection.cursor()
+                search = cur.execute("SELECT * FROM events")
+                response["code"] = 200
+                response["message"] = "Event Retrieved"
+                num = 0
+                #print "FMT"
+                for exists in search:
+                    #exists = search.fetchone()
+                    event = {'date':exists[0],'time':exists[1],'location':exists[2],'name':exists[3],'description':exists[4],'listofPart':exists[5],'image':exists[6],'owner':exists[7],'arrivalNot':exists[8],'id':exists[9]}
+                    #Generate Response
+                    response["event"+str(num)] = event
+                    num+=1
+                #print "FOR"
+                return jsonify(response)
+            else:
+                #Query DB for Event
+                cur = connection.cursor()
+                search = cur.execute("SELECT * FROM events WHERE %s=?" % "id", (id,))
+                exists = search.fetchone()
             #If event is found
             if exists:
                 #Format Event
@@ -168,6 +186,7 @@ def get_event(id):
 
         return jsonify(response)
 
+
 @app.route('/search', methods=['GET','POST'])
 def search():
     """
@@ -175,7 +194,7 @@ def search():
         {
           "dist": <double>  search radius
           "lat": <double> current latitude
-          "long" <double current long     
+          "long" <double current long
           "time_to": <string> date-time signifiying start of event*
           "time_frm: <string> date-time signfying end of event*
           "public": - integer (1 for public)
@@ -201,7 +220,7 @@ def search():
             #Build search query
             #Calculate Distance from radius
             if data["dist"] > -1:
-                #Get north & south most lat                               
+                #Get north & south most lat
                 n_lat = data["lat"] + (data["dist"]/67.0)
                 s_lat = data["lat"] - (data["dist"]/67.0)
                 #Get east and west most lng
@@ -212,10 +231,10 @@ def search():
                 query_vals+= (s_lat,n_lat,)
                 query+="LONG>=? AND LONG<=?AND "
                 query_vals+=(w_lng,e_lng,)
-            if data["title"] != "":                
+            if data["title"] != "":
                 query+="name=? AND "
                 query_vals+=(str(data["title"]),)
-                
+
             query+="public=?"
             query_vals+=(data["public"],)
 
@@ -240,7 +259,7 @@ def search():
             elif not time_range_to:
                time_range_to=True
             #CHeck if time from is valid
-             
+
             if time_range_from and event_time < time_frm:
                    time_range_from = False
             elif not time_range_from:
@@ -264,6 +283,25 @@ def search():
            print e
 
     return jsonify({"code": 400, "message": "Could not search database"})
+
+@app.route('/get-user/<username>',methods=["GET","POST"])
+def get_user(username):
+	connection = sqlite3.connect('db/server.db')
+	response = {"code":400,"message":"Could not Retreive user."}
+
+	with connection:
+		cur = connection.cursor()
+		search = cur.execute("SELECT * FROM namePass WHERE %s=?" % "username",(username,))
+		exists = search.fetchone()
+
+		if exists:
+			user = {'username':exists[0],'dob':exists[2],'phone':exists[3],'fName':exists[4],'lName':exists[5],'friendsList':exists[7],'userPic':exists[8],'bio':exists[9]}
+			response['code'] = 200
+			response['message'] = "User Retrieved"
+			response['user'] = user
+	return jsonify(response)
+
+
 
 @app.route('/create-event',methods=["POST"])
 def create_event():
