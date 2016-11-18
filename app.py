@@ -174,7 +174,8 @@ def search():
         Expected JSON format
         {
           "dist": <double>  search radius
-          "current" <2tuple> (lat,long) user's currnt position
+          "lat": <double> current latitude
+          "long" <double current long     
           "time_to": <string> date-time signifiying start of event*
           "time_frm: <string> date-time signfying end of event*
           "public": - integer (1 for public)
@@ -197,31 +198,27 @@ def search():
             cur = connection.cursor()
             query = "SELECT * FROM events WHERE "
             query_vals = ()
-            print "Q"
             #Build search query
             #Calculate Distance from radius
-            print type(data["dist"])
             if data["dist"] > -1:
-                #Get north & south most lat
-                n_lat = data["current"][0] - (data["dist"]/67)
-                s_lat = data["current"][0] + (data["dist"]/67)
+                #Get north & south most lat                               
+                n_lat = data["lat"] + (data["dist"]/67.0)
+                s_lat = data["lat"] - (data["dist"]/67.0)
                 #Get east and west most lng
-                e_lng = data["current"][1] + (data["dist"]/69)
-                w_lng = data["current"][1] - (data["dist"]/69)
+                e_lng = data["long"] + (data["dist"]/69.0)
+                w_lng = data["long"] - (data["dist"]/69.0)
                 #Build Query
-                query+="LAT>=? AND LAT<=? "
+                query+="LAT>=? AND LAT<=? AND "
                 query_vals+= (s_lat,n_lat,)
-                query+="LONG>=? AND LONG<=?AND"
-                query_vals+=(e_lng,w_lng,)
+                query+="LONG>=? AND LONG<=?AND "
+                query_vals+=(w_lng,e_lng,)
             if data["title"] != "":                
                 query+="name=? AND "
                 query_vals+=(str(data["title"]),)
-                print query_vals
+                
             query+="public=?"
             query_vals+=(data["public"],)
 
-            print query
-            print query_vals
             cur.execute(query,query_vals)
             query_res = cur.fetchall()
 
@@ -229,7 +226,7 @@ def search():
         results = []
         time_to = datetime.strptime(data["time_to"],"%d/%m/%Y")
         time_frm = datetime.strptime(data["time_frm"],"%d/%m/%Y")
-        print query_res
+
         for item in query_res:
             #Track additional search conditions
             time_range_to = data["time_to"] != ""
@@ -248,27 +245,19 @@ def search():
                    time_range_from = False
             elif not time_range_from:
                time_range_from=True
-            #Remove "corner cases "
-            if location:
-                event_distance = math.sqrt(item[10]**2 * item[11]**2)
-                if event_distance > data["dist"]:
-                    location = False
-            elif not location:
-               location = True
-
-            if time_range_from and time_range_to and location:
+            if time_range_from and time_range_to:
                 results.append(item)
-        print results
+
         #Build list of json objects for return
         cur.execute("PRAGMA table_info(events)")
         names = cur.fetchall()
         for res in range(0,len(results)):
             obj = {}
             for n in range(0,len(names)):
-                print "NAMES"+str(names[n][1]) 
+
                 obj[names[n][1]] = results[res][n]
             results[res] = obj
-        print results
+
         return jsonify({"code": 200, "message": "Database query success","data": results})
 
     except Exception as e:
