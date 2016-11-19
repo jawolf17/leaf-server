@@ -36,8 +36,8 @@ def account_update(uid):
                     hasher2.update(data["password"])
                     passw = hasher2.hexdigest()
 
-               cur.execute("UPDATE namePass SET username=?, password=?, dob=?,phone=?,fName=?, lName=?, bio=? WHERE id=?",
-                            (data["username"],passw,data["dob"],data["phone"],data["fName"],data["lName"],data["bio"],uid,))
+               cur.execute("UPDATE namePass SET username=?, password=?, dob=?,phone=?,fName=?, lName=?, bio=?, userPic=? WHERE id=?",
+                            (data["username"],passw,data["dob"],data["phone"],data["fName"],data["lName"],data["bio"],data["userPic"],uid,))
                return jsonify({"code": 200, "message": "You info has been updated"})
             else:
                 return jsonify({"code": 401, "message": "Your password is incorrect"})
@@ -90,7 +90,7 @@ def login():
         expected = id_exists[1]
 
         if entered == expected:
-            retMessage = {"message" : "You have logged in","code":200,"username":id_exists[0],"dob":id_exists[2],"phone":id_exists[3],"fName":id_exists[4],"lName":id_exists[5],"currentEvent":id_exists[6],"friendsList":id_exists[7],"bio":id_exists[9],"id":id_exists[10]}
+            retMessage = {"message" : "You have logged in","code":200,"username":id_exists[0],"dob":id_exists[2],"phone":id_exists[3],"fName":id_exists[4],"lName":id_exists[5],"currentEvent":id_exists[6],"friendsList":id_exists[7],"userPic": str(id_exists[8]),"bio":id_exists[9],"id":id_exists[10]}
         else:
             retMessage = {"message":"Invalid Log in","code":403}
     else:
@@ -295,10 +295,11 @@ def get_user(username):
 		exists = search.fetchone()
 
 		if exists:
-			user = {'username':exists[0],'dob':exists[2],'phone':exists[3],'fName':exists[4],'lName':exists[5],'friendsList':exists[7],'userPic':exists[8],'bio':exists[9]}
+			user = {'username':exists[0],'dob':exists[2],'phone':exists[3],'fName':exists[4],'lName':exists[5],'friendsList':exists[7],'userPic':str(exists[8]),'bio':exists[9]}
 			response['code'] = 200
 			response['message'] = "User Retrieved"
 			response['user'] = user
+        #print response
 	return jsonify(response)
 
 
