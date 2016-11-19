@@ -317,11 +317,11 @@ def create_event():
 
 
     #format data for insertions
-    user = ((data["date"],data["time"],data["location"],data["name"],data["description"],data["listofPart"],data["image"],data["owner"],data["arrivalNot"],u_id,data["lat"],data["long"],),)
+    user = ((data["date"],data["time"],data["location"],data["name"],data["description"],data["listofPart"],data["image"],data["owner"],data["arrivalNot"],u_id,data["LAT"],data["LONG"],data["public"],),)
 
     with connection:
         cur = connection.cursor()
-        cur.executemany("INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?)", user)
+        cur.executemany("INSERT INTO events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)", user)
         connection.commit()
 
     #Create Response
